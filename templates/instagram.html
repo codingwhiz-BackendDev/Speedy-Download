@@ -1,0 +1,57 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Downloader</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+
+<body>
+    <div class="container">
+        <p id="progressMessage" style="display: none; color: blue;">Download in progress. Please wait...</p>
+        {% for message in messages %}
+        <div class="alert alert-dark text-center">
+            <p style="color: red;">{{message}}</p>
+        </div>
+        {% endfor %}
+        <header>
+            <h1>Speedy Download</h1>
+            <p>Choose a platform and download your favorite videos with ease!</p>
+        </header>
+        <nav class="tabs">
+            <a href="/"><button class="tab">YouTube</button></a>
+            <a href="facebook"><button class="tab">Facebook</button></a>
+            <button class="tab active">Instagram</button>
+            <a href="twitter"><button class="tab">Twitter</button></a>
+        </nav>
+        <section id="facebook" class="tab-content active">
+            <h2>Download Instagram Videos</h2>
+            <form action="" method="POST">
+                <input type="text" name="instagramLink" placeholder="Paste Instagram video link here">
+                <button type="submit">Download</button>
+            </form>
+
+        </section>
+        <div class="footer">
+            <p>Made with ❤️ by <strong>Emmanuel Oluyemi (Coding Whiz)</strong></p>
+            <div class="social-links">
+                <a href="https://github.com/codingwhiz-BackendDev" target="_blank" aria-label="GitHub">
+                    <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" alt="GitHub" class="icon">
+                </a>
+                <a href="https://www.linkedin.com/in/your-linkedin-username" target="_blank" aria-label="LinkedIn">
+                    <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" alt="LinkedIn" class="icon">
+                </a>
+                <a href="https://your-portfolio-url.com" target="_blank" aria-label="Portfolio">
+                    <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png" alt="User" class="icon">
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'message.js' %}"></script>
+</body>
+
+</html>

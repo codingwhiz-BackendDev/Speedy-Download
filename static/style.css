@@ -1,0 +1,190 @@
+/* General Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f7fc;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    padding: 20px;
+}
+
+/* Container */
+.container {
+    background: #fff;
+    padding: 20px 30px;
+    width: 100%;
+    max-width: 600px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+/* Header */
+header h1 {
+    font-size: 1.8rem;
+    color: #4a90e2;
+    margin-bottom: 10px;
+}
+
+header p {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    gap: 10px;
+    /* Adds spacing between buttons */
+    margin-bottom: 20px;
+}
+
+.tabs a {
+    text-decoration: none;
+}
+
+.tab {
+    flex: 1;
+    /* Ensures buttons take equal space */
+    background: #e9f0f8;
+    color: #4a90e2;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    border: none;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.tab.active,
+.tab:hover {
+    background: #4a90e2;
+    color: #fff;
+}
+
+/* Tab Content */
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.tab-content h2 {
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.tab-content input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    outline: none;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+.tab-content button {
+    background: #4a90e2;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tab-content button:hover {
+    background: #357abd;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    .tab {
+        flex: 0 0 48%;
+        /* Two buttons per row */
+    }
+}
+
+/* Footer Styles */
+.footer {
+    margin-top: 30px;
+    padding: 20px 0;
+    text-align: center;
+    border-top: 1px solid #ddd;
+}
+
+.footer p {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.footer strong {
+    color: #4a90e2;
+}
+
+.social-links {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.social-links a {
+    text-decoration: none;
+    display: inline-block;
+}
+
+.social-links .icon {
+    width: 24px;
+    height: 24px;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.social-links .icon:hover {
+    transform: scale(1.1);
+    opacity: 0.8;
+}
+
+/* Video Preview Styles */
+.video-preview {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.video-preview img {
+    max-width: 300px;
+    border-radius: 8px;
+}
+
+/* Error Message */
+.error {
+    color: red;
+    text-align: center;
+    font-size: 1.2rem;
+}
+
+select {
+    padding: 10px;
+    width: 200px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+    margin-bottom: 10px;
+}
