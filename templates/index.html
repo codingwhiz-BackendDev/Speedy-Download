@@ -1,0 +1,448 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speedy Download - Modern Video Downloader</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+
+<body>
+    <div class="particles" id="particles"></div>
+
+    <div class="main-container">
+        <div class="container">
+            <!-- Progress Message -->
+            <div id="progressMessage">
+                <div class="loading"></div>
+                Download in progress. Please wait...
+            </div>
+
+            <!-- Error Messages -->
+            <div id="errorMessages"></div>
+
+            <header>
+                <h1>Speedy Download</h1>
+                <p>Choose a platform and download your favorite videos with ease!</p>
+            </header>
+
+            <nav class="tabs">
+                <button class="tab active" data-platform="youtube">
+                    <svg class="feature-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                    </svg>
+                    YouTube
+                </button>
+                <button class="tab" data-platform="facebook">
+                    <svg class="feature-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                    </svg>
+                    Facebook
+                </button>
+                <button class="tab" data-platform="instagram">
+                    <svg class="feature-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                    </svg>
+                    Instagram
+                </button>
+                <button class="tab" data-platform="twitter">
+                    <svg class="feature-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
+                    </svg>
+                    Twitter
+                </button>
+            </nav>
+
+            <section class="tab-content active" data-content="youtube">
+                <h2>Download YouTube Videos</h2>
+
+                <!-- Video Info Form -->
+                <form id="videoInfoForm" method="POST" action="{% url 'youtube' %}" style="margin-bottom: 20px;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="get_info">
+                    <div class="input-container">
+                        <input type="text" name="urlLink" id="videoUrl" placeholder="Paste YouTube video link here"
+                            required>
+                    </div>
+                    <button type="submit" class="info-btn">
+                        <svg style="width: 20px; height: 20px; margin-right: 8px;" viewBox="0 0 24 24"
+                            fill="currentColor">
+                            <path
+                                d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z" />
+                        </svg>
+                        Get Video Info
+                    </button>
+                </form>
+
+                <!-- Video Information Display -->
+                <div id="videoInfoDisplay" style="display: none;">
+                    <div class="video-info-card">
+                        <div class="video-thumbnail">
+                            <img id="videoThumbnail" src="" alt="Video thumbnail">
+                        </div>
+                        <div class="video-details">
+                            <h3 id="videoTitle">Video Title</h3>
+                            <p id="videoUploader">Uploader</p>
+                            <p id="videoDuration">Duration: --</p>
+                        </div>
+                    </div>
+
+                    <!-- Quality Selection -->
+                    <div class="quality-selection">
+                        <h4>Select Quality:</h4>
+                        <div class="quality-options" id="qualityOptions">
+                            <!-- Quality options will be populated here -->
+                        </div>
+
+                        <!-- Download Form -->
+                        <form id="downloadForm" method="POST" action="{% url 'youtube' %}"
+                            onsubmit="showDownloadMessage(event)">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="download">
+                            <input type="hidden" name="urlLink" id="downloadUrl">
+                            <input type="hidden" name="format_id" id="selectedFormatId">
+                            <input type="hidden" name="quality" id="selectedQuality">
+
+                            <button type="submit" class="download-btn" id="finalDownloadBtn" disabled>
+                                <svg style="width: 20px; height: 20px; margin-right: 8px;" viewBox="0 0 24 24"
+                                    fill="currentColor">
+                                    <path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" />
+                                </svg>
+                                Download Selected Quality
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <section class="tab-content" data-content="facebook">
+                <h2>Download Facebook Videos</h2>
+                <form action="facebook" method="POST" onsubmit="showDownloadMessage(event)">
+                    {% csrf_token %}
+                    <div class="input-container">
+                        <input type="text" name="urlLink" placeholder="Paste Facebook video link here" required>
+                    </div>
+                    <button type="submit" class="download-btn">
+                        <svg style="width: 20px; height: 20px; margin-right: 8px;" viewBox="0 0 24 24"
+                            fill="currentColor">
+                            <path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" />
+                        </svg>
+                        Download Video
+                    </button>
+                </form>
+            </section>
+
+            <section class="tab-content" data-content="instagram">
+                <h2>Download Instagram Videos</h2>
+                <form action="instagram" method="POST" onsubmit="showDownloadMessage(event)">
+                    {% csrf_token %}
+                    <div class="input-container">
+                        <input type="text" name="urlLink" placeholder="Paste Instagram video link here" required>
+                    </div>
+                    <button type="submit" class="download-btn">
+                        <svg style="width: 20px; height: 20px; margin-right: 8px;" viewBox="0 0 24 24"
+                            fill="currentColor">
+                            <path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" />
+                        </svg>
+                        Download Video
+                    </button>
+                </form>
+            </section>
+
+            <section class="tab-content" data-content="twitter">
+                <h2>Download Twitter Videos</h2>
+                <form action="twitter" method="POST" onsubmit="showDownloadMessage(event)">
+                    {% csrf_token %}
+                    <div class="input-container">
+                        <input type="text" name="urlLink" placeholder="Paste Twitter video link here" required>
+                    </div>
+                    <button type="submit" class="download-btn">
+                        <svg style="width: 20px; height: 20px; margin-right: 8px;" viewBox="0 0 24 24"
+                            fill="currentColor">
+                            <path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" />
+                        </svg>
+                        Download Video
+                    </button>
+                </form>
+            </section>
+
+            <div class="footer">
+                <p>Made with ❤️ by <strong>Emmanuel Oluyemi (Coding Whiz)</strong></p>
+                <div class="social-links">
+                    <a href="https://github.com/codingwhiz-BackendDev" target="_blank" aria-label="GitHub">
+                        <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" alt="GitHub" class="icon">
+                    </a>
+                    <a href="https://www.linkedin.com/in/emmanuel-oluyemi-9116a4300/" target="_blank"
+                        aria-label="LinkedIn">
+                        <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" alt="LinkedIn" class="icon">
+                    </a>
+                    <a href="https://your-portfolio-url.com" target="_blank" aria-label="Portfolio">
+                        <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png" alt="User" class="icon">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get CSRF token from cookie
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Set CSRF token for all forms
+        function setCSRFToken() {
+            const csrftoken = getCookie('csrftoken');
+            if (csrftoken) {
+                const csrfInputs = document.querySelectorAll('input[name="csrfmiddlewaretoken"]');
+                csrfInputs.forEach(input => {
+                    input.value = csrftoken;
+                });
+            }
+        }
+
+        // Tab switching functionality
+        document.addEventListener('DOMContentLoaded', function () {
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            // Set CSRF token on page load
+            setCSRFToken();
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    // Remove active class from all tabs and contents
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+
+                    // Add active class to clicked tab
+                    this.classList.add('active');
+
+                    // Show corresponding content
+                    const platform = this.getAttribute('data-platform');
+                    const targetContent = document.querySelector(`[data-content="${platform}"]`);
+                    if (targetContent) {
+                        targetContent.classList.add('active');
+                    }
+                });
+            });
+
+            // Create animated particles
+            createParticles();
+
+            // Handle video info form submission
+            const videoInfoForm = document.getElementById('videoInfoForm');
+            if (videoInfoForm) {
+                videoInfoForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    handleVideoInfo(this);
+                });
+            }
+
+            // Handle quality selection
+            document.addEventListener('click', function (e) {
+                if (e.target.classList.contains('quality-option')) {
+                    selectQuality(e.target);
+                }
+            });
+        });
+
+        function handleVideoInfo(form) {
+            const formData = new FormData(form);
+            const progressMessage = document.getElementById('progressMessage');
+            const errorMessages = document.getElementById('errorMessages');
+
+            // Show loading
+            progressMessage.style.display = 'block';
+            errorMessages.innerHTML = '';
+
+            // Debug: Log the form data
+            console.log('Form data:', Object.fromEntries(formData));
+            console.log('CSRF token:', getCookie('csrftoken'));
+
+            fetch('{% url "youtube" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            })
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    console.log('Response headers:', response.headers);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Response data:', data);
+                    progressMessage.style.display = 'none';
+
+                    if (data.success) {
+                        displayVideoInfo(data.video_info);
+                    } else {
+                        showError(data.error || 'Failed to get video information');
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                    progressMessage.style.display = 'none';
+                    showError('Network error occurred: ' + error.message);
+                });
+        }
+
+        function displayVideoInfo(videoInfo) {
+            document.getElementById('videoThumbnail').src = videoInfo.thumbnail;
+            document.getElementById('videoTitle').textContent = videoInfo.title;
+            document.getElementById('videoUploader').textContent = videoInfo.uploader;
+            document.getElementById('videoDuration').textContent = `Duration: ${videoInfo.duration}`;
+
+            // Populate quality options
+            const qualityOptions = document.getElementById('qualityOptions');
+            qualityOptions.innerHTML = '';
+
+            videoInfo.formats.forEach(format => {
+                const option = document.createElement('div');
+                option.className = 'quality-option';
+                option.dataset.formatId = format.format_id;
+                option.dataset.quality = format.quality;
+                option.innerHTML = `
+                    <strong>${format.quality}</strong><br>
+                    <small>${format.ext} • ${format.filesize || 'Unknown size'}</small>
+                `;
+                qualityOptions.appendChild(option);
+            });
+
+            document.getElementById('videoInfoDisplay').style.display = 'block';
+            document.getElementById('downloadUrl').value = document.getElementById('videoUrl').value;
+        }
+
+        function selectQuality(element) {
+            // Remove previous selection
+            document.querySelectorAll('.quality-option').forEach(opt => opt.classList.remove('selected'));
+
+            // Add selection to clicked element
+            element.classList.add('selected');
+
+            // Update hidden form fields
+            document.getElementById('selectedFormatId').value = element.dataset.formatId;
+            document.getElementById('selectedQuality').value = element.dataset.quality;
+
+            // Enable download button
+            document.getElementById('finalDownloadBtn').disabled = false;
+        }
+
+        function showError(message) {
+            const errorMessages = document.getElementById('errorMessages');
+            errorMessages.innerHTML = `<div class="error-message">${message}</div>`;
+        }
+
+        function showDownloadMessage(event) {
+            const progressMessage = document.getElementById('progressMessage');
+            const loading = progressMessage.querySelector('.loading');
+
+            progressMessage.style.display = 'block';
+            loading.style.display = 'inline-block';
+
+            // Add some visual feedback
+            progressMessage.style.animation = 'slideUp 0.5s ease-out';
+        }
+
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 50;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+
+                // Random positioning
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+
+                // Random animation delay
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particle.style.animationDuration = (Math.random() * 4 + 4) + 's';
+
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Add smooth scrolling and enhanced interactions
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('focus', function () {
+                this.parentElement.style.transform = 'scale(1.02)';
+            });
+
+            input.addEventListener('blur', function () {
+                this.parentElement.style.transform = 'scale(1)';
+            });
+        });
+
+        // Enhanced button interactions
+        document.querySelectorAll('.download-btn, .info-btn').forEach(btn => {
+            btn.addEventListener('mouseenter', function () {
+                if (!this.disabled) {
+                    this.style.transform = 'translateY(-3px) scale(1.05)';
+                }
+            });
+
+            btn.addEventListener('mouseleave', function () {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // Add form validation
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function (e) {
+                const urlInput = this.querySelector('input[name="urlLink"]');
+                if (urlInput && !urlInput.value.trim()) {
+                    e.preventDefault();
+                    showError('Please enter a valid URL');
+                    return false;
+                }
+
+                // Update CSRF token before submission
+                setCSRFToken();
+            });
+        });
+
+        // Auto-hide messages after some time
+        function autoHideMessage(element, delay = 5000) {
+            setTimeout(() => {
+                if (element.style.display !== 'none') {
+                    element.style.opacity = '0';
+                    element.style.transform = 'translateY(-20px)';
+                    setTimeout(() => {
+                        element.style.display = 'none';
+                        element.style.opacity = '1';
+                        element.style.transform = 'translateY(0)';
+                    }, 300);
+                }
+            }, delay);
+        }
+    </script>
+</body>
+
+</html>

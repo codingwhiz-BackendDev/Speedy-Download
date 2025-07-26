@@ -3,7 +3,8 @@ from . import views
 
 urlpatterns = [
     path('', views.index, name = 'index'),
-    path('facebook', views.facebook, name = 'facebook'),
-    path('instagram', views.instagram, name = 'instagram'),
-    path('twitter', views.twitter, name = 'twitter'), 
+    path('youtube', views.youtube_downloader, name = 'youtube'),
+    path('facebook', views.facebook_downloader, name = 'facebook'),
+    path('instagram', views.instagram_downloader, name = 'instagram'),
+    path('twitter', views.twitter_downloader, name = 'twitter'), 
 ]
