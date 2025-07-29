@@ -29,6 +29,17 @@ class VideoDownloaderService:
         if not os.path.exists(self.download_dir):
             os.makedirs(self.download_dir, exist_ok=True)
     
+    def _cleanup_temp_dir(self, temp_dir):
+        """Helper to clean up temporary directories."""
+        if os.path.exists(temp_dir):
+            try:
+                for f in os.listdir(temp_dir):
+                    os.remove(os.path.join(temp_dir, f))
+                os.rmdir(temp_dir)
+                logger.info(f"Cleaned up temporary directory: {temp_dir}")
+            except Exception as e:
+                logger.warning(f"Failed to clean up temp directory {temp_dir}: {e}")
+    
     def validate_url(self, url):
         """Validate if URL is from supported platforms"""
         if not url or not url.strip():
@@ -167,7 +178,7 @@ class VideoDownloaderService:
                     'acodec': fmt.get('acodec', 'unknown'),
                     'has_audio': True,
                     'filesize': filesize,
-                    'filesize_mb': round(filesize / (1024 * 1024), 1) if filesize else None,
+                    'filesize_mb': f"{round(filesize / (1024 * 1024), 1)} MB" if filesize else "Unknown",
                     'category': self.get_quality_category(height),
                     'note': "Complete video with audio - no merging needed",
                     'protocol': fmt.get('protocol', 'https'),
@@ -236,7 +247,7 @@ class VideoDownloaderService:
                 'acodec': 'merged',
                 'has_audio': False,
                 'filesize': estimated_size,
-                'filesize_mb': estimated_size_mb,
+                'filesize_mb': f"{round(estimated_size / (1024 * 1024), 1)} MB" if estimated_size else "Unknown",
                 'category': self.get_quality_category(height),
                 'note': note,
                 'protocol': fmt.get('protocol', 'https'),
@@ -260,7 +271,7 @@ class VideoDownloaderService:
                 'acodec': best_audio.get('acodec', 'unknown'),
                 'has_audio': True,
                 'filesize': best_audio.get('filesize'),
-                'filesize_mb': round(best_audio.get('filesize', 0) / (1024 * 1024), 1) if best_audio.get('filesize') else None,
+                'filesize_mb': f"{round(best_audio.get('filesize', 0) / (1024 * 1024), 1)} MB" if best_audio.get('filesize') else "Unknown",
                 'category': 'Audio',
                 'note': 'Audio only - converted to MP3',
                 'protocol': best_audio.get('protocol', 'https'),
@@ -286,116 +297,137 @@ class VideoDownloaderService:
             return 'Low'
     
     def download_video(self, url, format_id=None, quality=None, download_type='video'):
-        """Download video with specified quality"""
+        """Download video with specified quality, with fallback for 403 errors."""
         
         logger.info(f"Download type received: {download_type}, Selected quality: {quality}, Selected format_id: {format_id}")
         
-        # Configure download options based on quality selection
+        # Define potential format selectors
+        primary_format_selector = None
+        fallback_format_selector = None
+
         if download_type == 'audio':
-            format_selector = 'bestaudio/best'
+            primary_format_selector = 'bestaudio/best'
         elif format_id:
-            # If a specific format_id is chosen, try to combine it with best audio
-            # This assumes format_id refers to a video stream
-            format_selector = f'{format_id}+bestaudio/best'
+            primary_format_selector = f'{format_id}+bestaudio/best'
+            # If a specific format_id is chosen, prepare a fallback to a general quality selector
+            if quality and quality.endswith('p'):
+                height_str = quality.split('p')[0].split(' ')[0]
+                fallback_format_selector = f'bestvideo[height<={height_str}]+bestaudio/best[height<={height_str}]'
+            else:
+                fallback_format_selector = 'bestvideo+bestaudio/best' # Generic fallback
         elif quality == 'best':
-            format_selector = 'bestvideo+bestaudio/best'
+            primary_format_selector = 'bestvideo+bestaudio/best'
         elif quality == 'worst':
-            format_selector = 'worstvideo+worstaudio/worst' 
+            primary_format_selector = 'worstvideo+worstaudio/worst' 
         elif quality and quality.endswith('p'):
-            # Extract height from "1080p (video + audio)" or "1080p60 (ready to download)"
             height_str = quality.split('p')[0].split(' ')[0]
-            format_selector = f'bestvideo[height<={height_str}]+bestaudio/best[height<={height_str}]'
+            primary_format_selector = f'bestvideo[height<={height_str}]+bestaudio/best[height<={height_str}]'
         else:
-            # Default fallback for any other case, should still aim for video+audio
-            format_selector = 'bestvideo+bestaudio/best'
+            primary_format_selector = 'bestvideo+bestaudio/best'
         
-        logger.info(f"Final format selector: {format_selector}")
+        # List of format selectors to try, in order of preference
+        format_selectors_to_try = [primary_format_selector]
+        if fallback_format_selector and primary_format_selector != fallback_format_selector:
+            format_selectors_to_try.append(fallback_format_selector)
         
-        # Generate safe filename
-        temp_dir = tempfile.mkdtemp()
-        
-        ydl_opts = {
-            'format': format_selector,
-            'outtmpl': os.path.join(temp_dir, '%(title)s.%(ext)s'),
-            'restrictfilenames': True,
-            'noplaylist': True,
-            'extract_flat': False,
-            'writethumbnail': False,
-            'writeinfojson': False,
-            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-            'referer': 'https://www.youtube.com/',
-            'extractor_retries': 3,
-            'fragment_retries': 5,
-            'skip_unavailable_fragments': True,
-            'ignoreerrors': False,
-            'no_warnings': False,
-            'retries': 3,
-            'http_chunk_size': 10485760,  # 10MB chunks
-            'merge_output_format': 'mp4',
-            # Add timeout for merging process
-            'socket_timeout': 300,  # 5 minutes
-        }
-        
-        # Add post-processors based on determined download_type
-        logger.info(f"Applying post-processors for download_type: {download_type}")
-        if download_type == 'audio':
-            # Audio only download
-            ydl_opts['postprocessors'] = [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '192',
-            }]
-        else:
-            # Video download (will automatically merge with audio if needed)
-            ydl_opts['postprocessors'] = [{
-                'key': 'FFmpegVideoConvertor',
-                'preferedformat': 'mp4',
-            }]
+        final_error_message = "Download failed after multiple attempts."
+
+        for current_format_selector in format_selectors_to_try:
+            logger.info(f"Attempting download with format selector: {current_format_selector}")
             
-            # Add FFmpeg options for better performance with large files
-            ydl_opts['postprocessor_args'] = {
-                'ffmpeg': [
-                    '-c', 'copy',  # Copy streams without re-encoding (much faster)
-                    '-avoid_negative_ts', 'make_zero',
-                    '-fflags', '+genpts',
-                    '-movflags', '+faststart'  # Optimize for web playback
-                ]
+            temp_dir = tempfile.mkdtemp()
+            
+            ydl_opts = {
+                'format': current_format_selector,
+                'outtmpl': os.path.join(temp_dir, '%(title)s.%(ext)s'),
+                'restrictfilenames': True,
+                'noplaylist': True,
+                'extract_flat': False,
+                'writethumbnail': False,
+                'writeinfojson': False,
+                'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                'referer': 'https://www.youtube.com/',
+                'extractor_retries': 3,
+                'fragment_retries': 5,
+                'skip_unavailable_fragments': True,
+                'ignoreerrors': False,
+                'no_warnings': False,
+                'retries': 3,
+                'http_chunk_size': 10485760,  # 10MB chunks
+                'merge_output_format': 'mp4',
+                'socket_timeout': 300,  # 5 minutes
             }
-        
-        try:
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                # Extract info first to get the final filename
-                info = ydl.extract_info(url, download=False)
-                title = info.get('title', 'video')
-                
-                # Download the video
-                ydl.download([url])
-                
-                # Find the downloaded file
-                downloaded_files = os.listdir(temp_dir)
-                if downloaded_files:
-                    downloaded_file = os.path.join(temp_dir, downloaded_files[0])
+            
+            if download_type == 'audio':
+                ydl_opts['postprocessors'] = [{
+                    'key': 'FFmpegExtractAudio',
+                    'preferredcodec': 'mp3',
+                    'preferredquality': '192',
+                }]
+            else:
+                ydl_opts['postprocessors'] = [{
+                    'key': 'FFmpegVideoConvertor',
+                    'preferedformat': 'mp4',
+                }]
+                ydl_opts['postprocessor_args'] = {
+                    'ffmpeg': [
+                        '-c', 'copy',
+                        '-avoid_negative_ts', 'make_zero',
+                        '-fflags', '+genpts',
+                        '-movflags', '+faststart'
+                    ]
+                }
+            
+            try:
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    info = ydl.extract_info(url, download=False)
+                    title = info.get('title', 'video')
                     
-                    # Check if file exists and has content
-                    if os.path.exists(downloaded_file) and os.path.getsize(downloaded_file) > 0:
-                        return True, downloaded_file, title
+                    ydl.download([url])
+                    
+                    downloaded_files = os.listdir(temp_dir)
+                    if downloaded_files:
+                        downloaded_file = os.path.join(temp_dir, downloaded_files[0])
+                        if os.path.exists(downloaded_file) and os.path.getsize(downloaded_file) > 0:
+                            return True, downloaded_file, title
+                        else:
+                            final_error_message = "Downloaded file is empty or corrupted."
+                            logger.error(final_error_message)
+                            # Clean up temp dir and try next format selector if available
+                            self._cleanup_temp_dir(temp_dir)
+                            continue 
                     else:
-                        return False, "Downloaded file is empty or corrupted", None
+                        final_error_message = "No file was downloaded."
+                        logger.error(final_error_message)
+                        self._cleanup_temp_dir(temp_dir)
+                        continue
+                        
+            except yt_dlp.DownloadError as e:
+                error_msg = str(e)
+                if "timeout" in error_msg.lower() or "merge" in error_msg.lower():
+                    final_error_message = "Download timed out during merging. Try a smaller file size or audio-only option."
+                    logger.error(final_error_message)
+                    return False, final_error_message, None # This is a critical error, no point in retrying with other formats
+                elif "http error 403" in error_msg.lower() or "requested format is not available" in error_msg.lower():
+                    final_error_message = f"Format unavailable or restricted: {error_msg}. Trying next available format if possible."
+                    logger.warning(final_error_message)
+                    self._cleanup_temp_dir(temp_dir)
+                    continue # Try next format selector
                 else:
-                    return False, "No file was downloaded", None
-                    
-        except yt_dlp.DownloadError as e:
-            error_msg = str(e)
-            if "timeout" in error_msg.lower() or "merge" in error_msg.lower():
-                return False, "Download timed out during merging. Try a smaller file size or audio-only option.", None
-            elif "requested format is not available" in error_msg.lower() or "http error 403" in error_msg.lower():
-                logger.error(f"Format unavailable or forbidden error: {error_msg}")
-                return False, "The selected video format is unavailable or restricted. Please try a different quality or the 'Audio Only' option.", None
-            logger.error(f"Download error: {error_msg}")
-            return False, f"Download failed: {error_msg}", None
-        except Exception as e:
-            logger.error(f"Unexpected download error: {str(e)}")
-            return False, f"An unexpected error occurred: {str(e)}", None
+                    final_error_message = f"Download failed: {error_msg}"
+                    logger.error(final_error_message)
+                    self._cleanup_temp_dir(temp_dir)
+                    return False, final_error_message, None # Other download errors are likely fatal for all formats
+            except Exception as e:
+                final_error_message = f"An unexpected error occurred: {str(e)}"
+                logger.error(final_error_message)
+                self._cleanup_temp_dir(temp_dir)
+                return False, final_error_message, None
+            finally:
+                # Ensure temp directory is cleaned up even if an unexpected error occurs
+                self._cleanup_temp_dir(temp_dir)
+        
+        return False, final_error_message, None # If all attempts fail
 
 # Initialize service
 downloader_service = VideoDownloaderService()
