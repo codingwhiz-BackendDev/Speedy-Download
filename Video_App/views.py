@@ -288,24 +288,28 @@ class VideoDownloaderService:
     def download_video(self, url, format_id=None, quality=None, download_type='video'):
         """Download video with specified quality"""
         
+        logger.info(f"Download type received: {download_type}, Selected quality: {quality}, Selected format_id: {format_id}")
+        
         # Configure download options based on quality selection
-        if format_id:
-            # Check if this is a format that needs merging
+        if download_type == 'audio':
+            format_selector = 'bestaudio/best'
+        elif format_id:
+            # If a specific format_id is chosen, try to combine it with best audio
+            # This assumes format_id refers to a video stream
             format_selector = f'{format_id}+bestaudio/best'
         elif quality == 'best':
-            # Prefer formats that don't need merging
-            format_selector = 'best[ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best'
+            format_selector = 'bestvideo+bestaudio/best'
         elif quality == 'worst':
-            format_selector = 'worst' 
-        elif quality == 'audio':
-            format_selector = 'bestaudio/best'
+            format_selector = 'worstvideo+worstaudio/worst' 
         elif quality and quality.endswith('p'):
-            height = quality[:-1]
-            # Prefer complete formats first, then merged
-            format_selector = f'best[height<={height}][ext=mp4]/bestvideo[height<={height}]+bestaudio/best[height<={height}]'
+            # Extract height from "1080p (video + audio)" or "1080p60 (ready to download)"
+            height_str = quality.split('p')[0].split(' ')[0]
+            format_selector = f'bestvideo[height<={height_str}]+bestaudio/best[height<={height_str}]'
         else:
-            # Default: prefer complete formats
-            format_selector = 'best[ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best'
+            # Default fallback for any other case, should still aim for video+audio
+            format_selector = 'bestvideo+bestaudio/best'
+        
+        logger.info(f"Final format selector: {format_selector}")
         
         # Generate safe filename
         temp_dir = tempfile.mkdtemp()
@@ -332,8 +336,9 @@ class VideoDownloaderService:
             'socket_timeout': 300,  # 5 minutes
         }
         
-        # Add post-processors based on download type
-        if download_type == 'audio' or ('bestaudio' in format_selector and 'bestvideo' not in format_selector):
+        # Add post-processors based on determined download_type
+        logger.info(f"Applying post-processors for download_type: {download_type}")
+        if download_type == 'audio':
             # Audio only download
             ydl_opts['postprocessors'] = [{
                 'key': 'FFmpegExtractAudio',
@@ -341,7 +346,7 @@ class VideoDownloaderService:
                 'preferredquality': '192',
             }]
         else:
-            # For video downloads, add FFmpeg options for faster merging
+            # Video download (will automatically merge with audio if needed)
             ydl_opts['postprocessors'] = [{
                 'key': 'FFmpegVideoConvertor',
                 'preferedformat': 'mp4',
@@ -383,6 +388,9 @@ class VideoDownloaderService:
             error_msg = str(e)
             if "timeout" in error_msg.lower() or "merge" in error_msg.lower():
                 return False, "Download timed out during merging. Try a smaller file size or audio-only option.", None
+            elif "requested format is not available" in error_msg.lower() or "http error 403" in error_msg.lower():
+                logger.error(f"Format unavailable or forbidden error: {error_msg}")
+                return False, "The selected video format is unavailable or restricted. Please try a different quality or the 'Audio Only' option.", None
             logger.error(f"Download error: {error_msg}")
             return False, f"Download failed: {error_msg}", None
         except Exception as e:
@@ -444,11 +452,19 @@ def youtube_downloader(request):
                     return render(request, 'index.html')
         
         elif action == 'download':
+            # Determine download_type based on selected_quality for explicit passing
+            effective_download_type = 'video'
+            if selected_quality == 'Audio Only (MP3)':
+                effective_download_type = 'audio'
+            
+            logger.info(f"Attempting download. URL: {url}, Format ID: {selected_format}, Quality: {selected_quality}, Effective Download Type: {effective_download_type}")
+
             # Download with selected quality
             success, result, title = downloader_service.download_video(
                 url, 
                 format_id=selected_format, 
-                quality=selected_quality
+                quality=selected_quality,
+                download_type=effective_download_type # Pass the determined type explicitly
             )
             
             if success:
@@ -508,10 +524,16 @@ def facebook_downloader(request):
         selected_format = request.POST.get('format_id')
         selected_quality = request.POST.get('quality', 'best')
         
+        # Determine download_type based on selected_quality for explicit passing
+        effective_download_type = 'video'
+        if selected_quality == 'Audio Only (MP3)':
+            effective_download_type = 'audio'
+
         success, result, title = downloader_service.download_video(
             url, 
             format_id=selected_format, 
-            quality=selected_quality
+            quality=selected_quality,
+            download_type=effective_download_type
         )
         
         if success:
@@ -567,10 +589,16 @@ def instagram_downloader(request):
         selected_format = request.POST.get('format_id')
         selected_quality = request.POST.get('quality', 'best')
         
+        # Determine download_type based on selected_quality for explicit passing
+        effective_download_type = 'video'
+        if selected_quality == 'Audio Only (MP3)':
+            effective_download_type = 'audio'
+
         success, result, title = downloader_service.download_video(
             url, 
             format_id=selected_format, 
-            quality=selected_quality
+            quality=selected_quality,
+            download_type=effective_download_type
         )
         
         if success:
@@ -626,10 +654,16 @@ def twitter_downloader(request):
         selected_format = request.POST.get('format_id')
         selected_quality = request.POST.get('quality', 'best')
         
+        # Determine download_type based on selected_quality for explicit passing
+        effective_download_type = 'video'
+        if selected_quality == 'Audio Only (MP3)':
+            effective_download_type = 'audio'
+
         success, result, title = downloader_service.download_video(
             url, 
             format_id=selected_format, 
-            quality=selected_quality
+            quality=selected_quality,
+            download_type=effective_download_type
         )
         
         if success:
